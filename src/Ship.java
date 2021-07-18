@@ -2,10 +2,10 @@ import java.awt.*;
 
 public class Ship
 {
-	private int x, y, width, height, payloadHeight, bodyHeight, landingGearSize;
+	private int x, y, width, height, payloadHeight, bodyHeight, landingGearSize, cabinSize;
 	private double velX, velY, speed, angle;
-	private int[] payloadShapeX, payloadShapeY; // Triangle
-	private int[] landingGearX;
+	private int[] shipPolygonX, shipPolygonY;
+	private int nPoints;
 
 	private final Color color = Color.white;
 
@@ -18,16 +18,17 @@ public class Ship
 		payloadHeight = height / 4;
 		landingGearSize = height / 10;
 		bodyHeight = height - payloadHeight - landingGearSize;
+		cabinSize = 20;
 		velX = velY = angle = 0;
 		speed = 3;
-		payloadShapeX = new int[]{x + width / 2, x, x + width};
-		payloadShapeY = new int[]{y, y + payloadHeight, y + payloadHeight};
-		landingGearX = new int[]{width / 4, 3 * width / 4};
+		nPoints = 11;
+
+		updateShape();
 	}
 
 	public void accelerate()
 	{
-		velY = -speed;  // Has to be negative because we are going up
+		velY = -speed;  // TODO: Improve
 	}
 
 	public void steer(int direction)
@@ -35,13 +36,34 @@ public class Ship
 		angle += Math.PI * direction / 180;
 	}
 
-	private void updatePayloadShape()
+	private int[] rotatePoint(int px, int py, int centerX, int centerY)
 	{
-		payloadShapeX[0] = x + width / 2;
-		payloadShapeX[1] = x;
-		payloadShapeX[2] = x + width;
-		payloadShapeY[0] = y;
-		payloadShapeY[1] = payloadShapeY[2] = y + payloadHeight;
+		double sinx = Math.sin(angle);
+		double cosx = Math.cos(angle);
+		px -= centerX;
+		py -= centerY;
+		return new int[]{(int) (centerX + px * cosx - py * sinx), (int) (centerY + px * sinx + py * cosx)};
+	}
+
+	private void updateShape()
+	{
+		int lowerBodyY = y + payloadHeight + bodyHeight;
+		int quarterWidth = width / 4;
+
+		shipPolygonX = new int[]{x + width / 2, x, x, x + quarterWidth, x + quarterWidth - landingGearSize,
+				x + quarterWidth, x + 3 * quarterWidth, x + 3 * quarterWidth + landingGearSize, x + 3 * quarterWidth,
+				x + width, x + width};
+		shipPolygonY = new int[]{y, y + payloadHeight, lowerBodyY, lowerBodyY, y + height, lowerBodyY, lowerBodyY,
+				y + height, lowerBodyY, lowerBodyY, y + payloadHeight};
+
+		int centerX = x + width / 2;
+		int centerY = y + height / 2;
+		for(int i = 0; i < nPoints; i++)
+		{
+			int[] rotatedPoint = rotatePoint(shipPolygonX[i], shipPolygonY[i], centerX, centerY);
+			shipPolygonX[i] = rotatedPoint[0];
+			shipPolygonY[i] = rotatedPoint[1];
+		}
 	}
 
 	public void tick()
@@ -49,32 +71,13 @@ public class Ship
 		velY += Environment.gravityForce;
 		y += Math.min(velY, Environment.maxGravityForce);
 
-		updatePayloadShape();
+		updateShape();
 	}
 
 	public void render(Graphics g)
 	{
-		// TODO Uncomment
-//		g.setColor(color);
-//		g.drawPolygon(payloadShapeX, payloadShapeY, 3);
-//		g.drawRect(x, y + payloadHeight, width, bodyHeight);
-//		g.drawOval(x + width / 4 + 1, y + payloadHeight + width / 4, width / 2, width / 2);
-//		for(int i = 0; i < 2; i++)
-//		{
-//			g.drawLine(x + landingGearX[i], y + height - landingGearSize, x + landingGearX[i] + (i == 0 ?
-//					-landingGearSize : landingGearSize), y + height);
-//		}
-
-		// DEBUG
-		System.out.println("Angle: " + angle);
-		g.setColor(Color.red);
-		g.fillOval(x + width / 2 - 5, y + height - 5, 10, 10);
-
 		g.setColor(color);
-		Graphics2D g2d = (Graphics2D) g.create();
-		g2d.translate(x + width / 2, y + height / 2);
-		g2d.rotate(angle);
-		g2d.translate(-x - width / 2, -y - height / 2);
-		g2d.drawRect(x, y, width, height);
+		g.drawPolygon(shipPolygonX, shipPolygonY, 11);
+		g.drawOval(x + width / 2 - cabinSize / 2, y + height / 2 - cabinSize / 2, cabinSize, cabinSize);
 	}
 }

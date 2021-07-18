@@ -23,7 +23,7 @@ public class Game extends Canvas implements Runnable
 		this.setFocusable(true);
 		this.requestFocus();
 
-		ship = new Ship(WIDTH / 2, HEIGHT / 2, 35, 85);
+		ship = new Ship(WIDTH / 2, HEIGHT / 2, 36, 85);
 		env = new Environment();
 
 		keyboard = new KeyInput(ship);
