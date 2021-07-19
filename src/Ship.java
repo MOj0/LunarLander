@@ -1,10 +1,14 @@
 import java.awt.*;
+import java.util.Arrays;
 
 public class Ship
 {
-	private int x, y, width, height, payloadHeight, bodyHeight, landingGearSize, cabinSize;
-	private double velX, velY, speed, angle;
-	private int[] shipPolygonX, shipPolygonY;
+	// TODO: Feel of the game: Vse se mora dogajat bolj pocasi! https://youtu.be/LrEvoKI07Ww?t=436
+	// Make private?
+	public double x, y, width, height, payloadHeight, bodyHeight, landingGearSize;
+	public double velX, velY, speed, angle;
+	private int cabinSize;
+	private double[] shipPolygonX, shipPolygonY;
 	private int nPoints;
 	private boolean accelerting;
 	private int steer; // -1 - left, 0 - forward, 1 - right
@@ -22,7 +26,7 @@ public class Ship
 		bodyHeight = height - payloadHeight - landingGearSize;
 		cabinSize = 20;
 		velX = velY = angle = 0;
-		speed = 1;
+		speed = 0.15;
 		nPoints = 11;
 		accelerting = false;
 		steer = 0;
@@ -40,34 +44,39 @@ public class Ship
 		this.steer = steer;
 	}
 
-	private int[] rotatePoint(int px, int py, int centerX, int centerY)
+	private double[] rotatePoint(double px, double py, double centerX, double centerY)
 	{
 		double sinx = Math.sin(angle);
 		double cosx = Math.cos(angle);
 		px -= centerX;
 		py -= centerY;
-		return new int[]{(int) (centerX + px * cosx - py * sinx), (int) (centerY + px * sinx + py * cosx)};
+		return new double[]{centerX + px * cosx - py * sinx, centerY + px * sinx + py * cosx};
 	}
 
 	private void updateShape()
 	{
-		int lowerBodyY = y + payloadHeight + bodyHeight;
-		int quarterWidth = width / 4;
+		double lowerBodyY = y + payloadHeight + bodyHeight;
+		double quarterWidth = width / 4;
 
-		shipPolygonX = new int[]{x + width / 2, x, x, x + quarterWidth, x + quarterWidth - landingGearSize,
+		shipPolygonX = new double[]{x + width / 2, x, x, x + quarterWidth, x + quarterWidth - landingGearSize,
 				x + quarterWidth, x + 3 * quarterWidth, x + 3 * quarterWidth + landingGearSize, x + 3 * quarterWidth,
 				x + width, x + width};
-		shipPolygonY = new int[]{y, y + payloadHeight, lowerBodyY, lowerBodyY, y + height, lowerBodyY, lowerBodyY,
+		shipPolygonY = new double[]{y, y + payloadHeight, lowerBodyY, lowerBodyY, y + height, lowerBodyY, lowerBodyY,
 				y + height, lowerBodyY, lowerBodyY, y + payloadHeight};
 
-		int centerX = x + width / 2;
-		int centerY = y + height / 2;
+		double centerX = x + width / 2;
+		double centerY = y + height / 2;
 		for(int i = 0; i < nPoints; i++)
 		{
-			int[] rotatedPoint = rotatePoint(shipPolygonX[i], shipPolygonY[i], centerX, centerY);
-			shipPolygonX[i] = rotatedPoint[0];
-			shipPolygonY[i] = rotatedPoint[1];
+			double[] rotatedPointXY = rotatePoint(shipPolygonX[i], shipPolygonY[i], centerX, centerY);
+			shipPolygonX[i] = rotatedPointXY[0];
+			shipPolygonY[i] = rotatedPointXY[1];
 		}
+	}
+
+	private int[] convertDoubleToIntArray(double[] array)
+	{
+		return Arrays.stream(array).mapToInt(x -> (int) x).toArray();
 	}
 
 	public void tick()
@@ -76,14 +85,15 @@ public class Ship
 
 		if(accelerting)
 		{
-			velX += Math.sin(angle);
+			velX += Math.sin(angle) / 5;
 			velY -= Math.cos(angle) * speed;
 		}
 
-		velX += Math.abs(velX) < Environment.drag ? velX > 0 ? -Environment.drag : Environment.drag : 0;
-		velY += Environment.gravityForce;
+		velX += Math.abs(velX) > Environment.drag ? velX > 0 ? -Environment.drag : Environment.drag : 0;
+		velY += velY < Environment.maxGravityForce ? Environment.gravityForce : 0;
+
 		x += velX;
-		y += Math.min(velY, Environment.maxGravityForce);
+		y += velY;
 
 		updateShape();
 	}
@@ -91,7 +101,8 @@ public class Ship
 	public void render(Graphics g)
 	{
 		g.setColor(color);
-		g.drawPolygon(shipPolygonX, shipPolygonY, 11);
-		g.drawOval(x + width / 2 - cabinSize / 2, y + height / 2 - cabinSize / 2, cabinSize, cabinSize);
+		g.drawPolygon(convertDoubleToIntArray(shipPolygonX), convertDoubleToIntArray(shipPolygonY), 11);
+		g.drawOval((int) (x + width / 2 - cabinSize / 2), (int) (y + height / 2 - cabinSize / 2), cabinSize,
+				cabinSize);
 	}
 }

@@ -9,6 +9,7 @@ public class Game extends Canvas implements Runnable
 	private KeyInput keyboard;
 	private Ship ship; // Player
 	private Environment env;
+	private HUD hud;
 
 	private Thread thread;
 
@@ -25,6 +26,7 @@ public class Game extends Canvas implements Runnable
 
 		ship = new Ship(WIDTH / 2, HEIGHT / 2, 36, 85);
 		env = new Environment();
+		hud = new HUD(ship);
 
 		keyboard = new KeyInput(ship);
 		this.addKeyListener(keyboard);
@@ -54,6 +56,7 @@ public class Game extends Canvas implements Runnable
 
 		ship.render(g);
 		env.render(g);
+		hud.render(g);
 
 		g.dispose();
 		bs.show();

@@ -2,15 +2,14 @@ import java.awt.*;
 
 public class Environment
 {
-	public static final double gravityForce = 0.1, maxGravityForce = 1, drag = 0.01;
+	public static final double gravityForce = 0.05, maxGravityForce = 1.5, drag = 0.01;
 
-	private int[] terrain; // TODO: Change later (Perlin noise)
+	private int[] terrain;
 	private int[] xPoints;
 	// TODO: Add stars -> when moving to the left or right, "new" stars appear
 
 	public Environment()
 	{
-		// FactorTotal (Factor1 sin(Scale1 x) + FactorE sin(ScaleE ℯ x) + FactorPi sin(ScalePi π x))
 		// TODO: IMPLEMENT PERLIN NOISE!!!!!!
 		terrain = new int[Game.WIDTH];
 		double factorE = -1.2;
