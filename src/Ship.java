@@ -6,6 +6,8 @@ public class Ship
 	private double velX, velY, speed, angle;
 	private int[] shipPolygonX, shipPolygonY;
 	private int nPoints;
+	private boolean accelerting;
+	private int steer; // -1 - left, 0 - forward, 1 - right
 
 	private final Color color = Color.white;
 
@@ -20,20 +22,22 @@ public class Ship
 		bodyHeight = height - payloadHeight - landingGearSize;
 		cabinSize = 20;
 		velX = velY = angle = 0;
-		speed = 3;
+		speed = 1;
 		nPoints = 11;
+		accelerting = false;
+		steer = 0;
 
 		updateShape();
 	}
 
-	public void accelerate()
+	public void setAcceleration(boolean accelerating)
 	{
-		velY = -speed;  // TODO: Improve
+		this.accelerting = accelerating;
 	}
 
-	public void steer(int direction)
+	public void setSteer(int steer)
 	{
-		angle += Math.PI * direction / 180;
+		this.steer = steer;
 	}
 
 	private int[] rotatePoint(int px, int py, int centerX, int centerY)
@@ -68,7 +72,17 @@ public class Ship
 
 	public void tick()
 	{
+		angle += Math.PI * steer / 180;
+
+		if(accelerting)
+		{
+			velX += Math.sin(angle);
+			velY -= Math.cos(angle) * speed;
+		}
+
+		velX += Math.abs(velX) < Environment.drag ? velX > 0 ? -Environment.drag : Environment.drag : 0;
 		velY += Environment.gravityForce;
+		x += velX;
 		y += Math.min(velY, Environment.maxGravityForce);
 
 		updateShape();

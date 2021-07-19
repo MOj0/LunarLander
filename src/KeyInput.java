@@ -3,33 +3,53 @@ import java.awt.event.KeyEvent;
 
 public class KeyInput extends KeyAdapter
 {
-	private Ship ship;
+	private final Ship ship;
+	private final boolean[] pressedLeftRight;
 
 	public KeyInput(Ship ship)
 	{
 		this.ship = ship;
+		pressedLeftRight = new boolean[2]; // A, D
 	}
-
 
 	@Override
 	public void keyPressed(KeyEvent e)
 	{
 		int keyCode = e.getKeyCode();
-		if(keyCode == 87) // W
-		{
-			ship.accelerate();
-		}
-		if(keyCode == 65 || keyCode == 68) // A, D
-		{
-			ship.steer(keyCode == 65 ? -1 : 1);
-		}
-//		if(keyCode == 83) // S
-//		{
-//
-//		}
+
 		if(keyCode == 27) // Esc
 		{
 			System.exit(0);
+		}
+		else if(keyCode == 87) // W
+		{
+			ship.setAcceleration(true);
+		}
+		else if(keyCode == 65 || keyCode == 68) // A, D
+		{
+			boolean pressedA = keyCode == 65;
+			ship.setSteer(pressedA ? -1 : 1);
+			pressedLeftRight[pressedA ? 0 : 1] = true;
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e)
+	{
+		int keyCode = e.getKeyCode();
+		if(keyCode == 87) // W
+		{
+			ship.setAcceleration(false);
+		}
+		else if(keyCode == 65 || keyCode == 68) // A, D
+		{
+			pressedLeftRight[keyCode == 65 ? 0 : 1] = false;
+		}
+
+		// Reset steer only if no directional button is pressed -> less clunky movement
+		if(!pressedLeftRight[0] && !pressedLeftRight[1])
+		{
+			ship.setSteer(0);
 		}
 	}
 }
