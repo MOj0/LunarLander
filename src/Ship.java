@@ -34,6 +34,13 @@ public class Ship
 		updateShape();
 	}
 
+	public void reset(int x, int y)
+	{
+		this.x = x;
+		this.y = y;
+		velX = velY = angle = 0;
+	}
+
 	public void setAcceleration(boolean accelerating)
 	{
 		this.accelerting = accelerating;

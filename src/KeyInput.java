@@ -31,6 +31,11 @@ public class KeyInput extends KeyAdapter
 			ship.setSteer(pressedA ? -1 : 1);
 			pressedLeftRight[pressedA ? 0 : 1] = true;
 		}
+		else if(keyCode == 82) // R
+		{
+			ship.reset(Game.WIDTH / 2, Game.HEIGHT / 2); // Should be handled by Game class!
+			Environment.createTerrain();
+		}
 	}
 
 	@Override
