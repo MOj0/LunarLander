@@ -36,6 +36,10 @@ public class KeyInput extends KeyAdapter
 			ship.reset(Game.WIDTH / 2, Game.HEIGHT / 2); // Should be handled by Game class!
 			Environment.createTerrain();
 		}
+		else if(keyCode == 71)
+		{
+			Environment.setGravity(Environment.gravity == 0);
+		}
 	}
 
 	@Override

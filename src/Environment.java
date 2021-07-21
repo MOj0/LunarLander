@@ -3,7 +3,10 @@ import java.util.Random;
 
 public class Environment
 {
-	public static final double gravityForce = 0.05, maxGravityForce = 1.5, drag = 0.01;
+	public static final double gravityForce = 0.05;
+	public static final double maxGravityForce = 2;
+	public static final double drag = 0.01;
+	public static double gravity;
 
 	private static int[] terrain, xPoints;
 	private static Random r;
@@ -15,6 +18,7 @@ public class Environment
 		terrain = new int[Game.WIDTH];
 		xPoints = new int[Game.WIDTH];
 		r = new Random();
+		gravity = gravityForce;
 
 		createTerrain();
 	}
@@ -30,6 +34,16 @@ public class Environment
 			terrain[i] = (int) (5 * Game.HEIGHT / 6 + ImprovedNoise.noise(offset, 0, offset) * scale);
 			offset += 0.005;
 		}
+	}
+
+	public static void setGravity(boolean g)
+	{
+		gravity = g ? gravityForce : 0;
+	}
+
+	public static int[] getTerrain()
+	{
+		return terrain;
 	}
 
 	public static void render(Graphics g)

@@ -3,6 +3,7 @@ import java.awt.image.BufferStrategy;
 
 public class Game extends Canvas implements Runnable
 {
+	// TODO: Feel of the game: Vse se mora dogajat bolj pocasi! https://youtu.be/LrEvoKI07Ww?t=436
 	public static final int WIDTH = 1024, HEIGHT = 768;
 	private final Color backgroundColor = new Color(9, 9, 42);
 
@@ -23,7 +24,7 @@ public class Game extends Canvas implements Runnable
 		this.setFocusable(true);
 		this.requestFocus();
 
-		ship = new Ship(WIDTH / 2, HEIGHT / 2, 36, 85);
+		ship = new Ship(WIDTH / 2, HEIGHT / 5, 50, 46);
 		hud = new HUD(ship);
 
 		keyboard = new KeyInput(ship);
