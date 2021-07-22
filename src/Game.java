@@ -60,8 +60,8 @@ public class Game extends Canvas implements Runnable
 
 		g2d.translate(-camera.getX(), -camera.getY());
 
-		ship.render(g);
 		Environment.render(g);
+		ship.render(g);
 
 		g2d.translate(camera.getX(), camera.getY()); // Reset camera position for the HUD
 		hud.render(g);

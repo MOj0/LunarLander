@@ -34,7 +34,7 @@ public class KeyInput extends KeyAdapter
 		else if(keyCode == 82) // R
 		{
 			ship.reset(Game.WIDTH / 2, Game.HEIGHT / 2); // Should be handled by Game class!
-			Environment.createTerrain();
+			Environment.createTerrainAndStars();
 		}
 		else if(keyCode == 71)
 		{
