@@ -9,11 +9,11 @@ public class Ship
 	// Make private eventually?
 	public double x, y, width, height;
 	public double velX, velY, velocity, speed, angle;
+	public BufferedImage shipImage;
 	private double[] shipHitboxX, shipHitboxY;
 	private int nPoints;
 	private boolean accelerting;
 	private int steer; // -1 - left, 0 - forward, 1 - right
-	private BufferedImage shipImage;
 	private final Color color = Color.white;
 
 	// DEBUG
@@ -154,7 +154,7 @@ public class Ship
 	{
 		if(checkCollision())
 		{
-			System.err.println("YOU DIED");
+			//TODO: Check if landed successfully or crashed
 		}
 
 		angle += Math.PI * steer / 180;

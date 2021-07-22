@@ -6,19 +6,22 @@ public class Environment
 	public static final double gravityForce = 0.05;
 	public static final double maxGravityForce = 2;
 	public static final double drag = 0.01;
+	public static final int WIDTH_MULTIPLIER = 4;
 	public static double gravity;
 
 	private static int[] terrain, xPoints;
 	private static Random r;
 	private static double offset;
+	private static final int terrainY;
 	// TODO: Add stars -> when moving to the left or right, "new" stars appear
 
 	static
 	{
-		terrain = new int[Game.WIDTH];
-		xPoints = new int[Game.WIDTH];
+		terrain = new int[WIDTH_MULTIPLIER * Game.WIDTH];
+		xPoints = new int[terrain.length];
 		r = new Random();
 		gravity = gravityForce;
+		terrainY = 5 * Game.HEIGHT / 6;
 
 		createTerrain();
 	}
@@ -28,10 +31,10 @@ public class Environment
 		offset = r.nextInt(10000);
 		int scale = r.nextInt(25) + 375;
 
-		for(int i = 0; i < xPoints.length; i++)
+		for(int i = 0; i < terrain.length; i++)
 		{
 			xPoints[i] = i;
-			terrain[i] = (int) (5 * Game.HEIGHT / 6 + ImprovedNoise.noise(offset, 0, offset) * scale);
+			terrain[i] = (int) (terrainY + ImprovedNoise.noise(offset, 0, offset) * scale);
 			offset += 0.005;
 		}
 	}
@@ -49,6 +52,6 @@ public class Environment
 	public static void render(Graphics g)
 	{
 		g.setColor(Color.WHITE);
-		g.drawPolyline(xPoints, terrain, Game.WIDTH);
+		g.drawPolyline(xPoints, terrain, terrain.length);
 	}
 }

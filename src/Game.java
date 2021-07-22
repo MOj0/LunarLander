@@ -9,6 +9,7 @@ public class Game extends Canvas implements Runnable
 
 	private KeyInput keyboard;
 	private Ship ship; // Player
+	private Camera camera;
 	private HUD hud;
 
 	private Thread thread;
@@ -25,6 +26,7 @@ public class Game extends Canvas implements Runnable
 		this.requestFocus();
 
 		ship = new Ship(WIDTH / 2, HEIGHT / 5, 50, 46);
+		camera = new Camera(ship, WIDTH, HEIGHT);
 		hud = new HUD(ship);
 
 		keyboard = new KeyInput(ship);
@@ -36,6 +38,7 @@ public class Game extends Canvas implements Runnable
 
 	private void tick()
 	{
+		camera.tick();
 		ship.tick();
 	}
 
@@ -50,11 +53,17 @@ public class Game extends Canvas implements Runnable
 
 		Graphics g = bs.getDrawGraphics();
 
+		Graphics2D g2d = (Graphics2D) g;
+
 		g.setColor(backgroundColor);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 
+		g2d.translate(-camera.getX(), -camera.getY());
+
 		ship.render(g);
 		Environment.render(g);
+
+		g2d.translate(camera.getX(), camera.getY()); // Reset camera position for the HUD
 		hud.render(g);
 
 		g.dispose();
@@ -80,7 +89,7 @@ public class Game extends Canvas implements Runnable
 			long now = System.nanoTime();
 			delta += (now - lastTime) / nsPerTick;
 			lastTime = now;
-			while(delta >= 1) // If a lot of time has passed, program has to tick(), doesn't have time to render...
+			while(delta >= 1) // If a lot of time has passed, program has to tick(), rendering comes later
 			{
 				tick();
 				delta--;
