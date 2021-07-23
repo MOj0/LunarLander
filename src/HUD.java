@@ -25,5 +25,7 @@ public class HUD
 		g.drawString("Gravity: " + Environment.gravity, 10, 170);
 		g.drawString("Terrain delta: " + ship.terrainDelta, 10, 205);
 		g.drawString(String.format("Deviation: %.2f", ship.deviation), 10, 230);
+		g.drawString(String.format("Gravity push: %.2f", Math.max(1, Math.abs(ship.velY)) * Environment.gravity), 10,
+				255);
 	}
 }

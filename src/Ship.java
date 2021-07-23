@@ -8,15 +8,15 @@ public class Ship
 {
 	// Make private eventually?
 	public double x, y, width, height;
-	public double velX, velY, velocity, speed, angle, deviation;
+	public double velX, velY, velocity, speed, angle, deviation; // deviation - max rounding error when checking slopes
 	public int terrainDelta;
 	public BufferedImage shipImage;
 	private double[] shipHitboxX, shipHitboxY;
 	private int nPoints;
 	private boolean accelerating, reversing;
 	private int steer; // -1 - left, 0 - forward, 1 - right
-	private final Color color = Color.white;
-	private final int[] terrain = Environment.getTerrain();
+	private final Color COLOR = Color.white;
+	private final int[] TERRAIN = Environment.getTerrain();
 
 	// DEBUG
 	private int[] collisionPoint;
@@ -29,12 +29,11 @@ public class Ship
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		velX = velY = angle = deviation = terrainDelta = 0;
+		velX = velY = angle = deviation = terrainDelta = steer = 0;
 		shipHitboxX = shipHitboxY = new double[nPoints];
-		speed = 0.15;
+		speed = 0.05;
 		nPoints = 3;
 		accelerating = reversing = false;
-		steer = 0;
 
 		shipImage = readImage("res/shipImage.png");
 
@@ -119,8 +118,8 @@ public class Ship
 		return 0.5 * (-yPoints[1] * xPoints[2] + yPoints[0] * (-xPoints[1] + xPoints[2]) + xPoints[0] * (yPoints[1] - yPoints[2]) + xPoints[1] * yPoints[2]);
 	}
 
-	private boolean isColliding(double area, double px, double py, double p0x, double p1x, double p2x, double p0y,
-								double p1y, double p2y)
+	private boolean isInsideTriangle(double area, double px, double py, double p0x, double p1x, double p2x, double p0y,
+									 double p1y, double p2y)
 	{
 		double s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * px + (p0x - p2x) * py);
 		double t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * px + (p1x - p0x) * py);
@@ -141,15 +140,15 @@ public class Ship
 		double p1y = shipHitboxY[1];
 		double p2y = shipHitboxY[2];
 
-		for(int terrainXIndex = 0; terrainXIndex < terrain.length; terrainXIndex++)
+		for(int terrainXIndex = 0; terrainXIndex < TERRAIN.length; terrainXIndex++)
 		{
 			if(terrainXIndex < minShipX || terrainXIndex > maxShipX) // Cannot collide with ship - optimization
 			{
 				continue;
 			}
 
-			double terrainY = terrain[terrainXIndex];
-			if(isColliding(hitboxArea, terrainXIndex, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
+			double terrainY = TERRAIN[terrainXIndex];
+			if(isInsideTriangle(hitboxArea, terrainXIndex, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
 			{
 				// DEBUG
 				collisionPoint[0] = terrainXIndex;
@@ -183,14 +182,15 @@ public class Ship
 	{
 		if(checkCollision())
 		{
+			// TODO: Refractor
 			double x1 = shipHitboxX[1];
 			double y1 = shipHitboxY[1];
 			double x2 = shipHitboxX[2];
 			double y2 = shipHitboxY[2];
 			int x3 = collisionPoint[0] - terrainDelta;
-			double y3 = terrain[x3];
+			double y3 = TERRAIN[x3];
 			int x4 = collisionPoint[0] + terrainDelta;
-			double y4 = terrain[x4];
+			double y4 = TERRAIN[x4];
 			terrainSlopePoints[0][0] = x3;
 			terrainSlopePoints[0][1] = (int) y3;
 			terrainSlopePoints[1][0] = x4;
@@ -203,19 +203,18 @@ public class Ship
 
 		if(accelerating)
 		{
-			velX += Math.sin(angle) / 5; // Hardcoded value yikes
+			velX += Math.sin(angle) * speed;
 			velY -= Math.cos(angle) * speed;
 		}
 		else if(reversing)
 		{
-			velX -= Math.sin(angle) / 25; // Hardcoded value yikes
+			velX -= Math.sin(angle) * speed / 2;
 			velY += Math.cos(angle) * speed / 2;
 		}
 
-		velX += Math.abs(velX) > Environment.drag ? velX > 0 ? -Environment.drag : Environment.drag : 0;
-		velY += velY < Environment.maxGravityForce ? Environment.gravity : 0;
+		velY += velY < Environment.MAX_GRAVITY_FORCE ? Math.max(1, Math.abs(velY)) * Environment.gravity : 0;
+
 		velocity = Math.sqrt(velX * velX + velY * velY);
-//		deviation = Math.max(0.05, 0.3 - velocity);
 		deviation = velocity > 1 ? 0 : Math.max(0.05, 0.25 - Math.abs(angle));
 
 		x += velX;
@@ -226,7 +225,7 @@ public class Ship
 
 	public void render(Graphics g)
 	{
-		g.setColor(color);
+		g.setColor(COLOR);
 		Graphics2D g2d = (Graphics2D) g.create();
 		int cx = (int) (width / 2);
 		int cy = (int) (height / 2);

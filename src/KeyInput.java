@@ -4,11 +4,13 @@ import java.awt.event.KeyEvent;
 public class KeyInput extends KeyAdapter
 {
 	private final Ship ship;
+	private final Game game;
 	private final boolean[] pressedLeftRight;
 
-	public KeyInput(Ship ship)
+	public KeyInput(Ship ship, Game game)
 	{
 		this.ship = ship;
+		this.game = game;
 		pressedLeftRight = new boolean[2]; // A, D
 	}
 
@@ -37,8 +39,7 @@ public class KeyInput extends KeyAdapter
 		}
 		else if(keyCode == 82) // R
 		{
-			ship.reset(Game.WIDTH / 2, Game.HEIGHT / 2); // Should be handled by Game class!
-			Environment.createTerrainAndStars();
+			game.restart();
 		}
 		else if(keyCode == 71)
 		{

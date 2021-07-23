@@ -1,16 +1,17 @@
 import java.awt.*;
 import java.awt.image.BufferStrategy;
+import java.util.Random;
 
 public class Game extends Canvas implements Runnable
 {
-	// TODO: Feel of the game: Vse se mora dogajat bolj pocasi! https://youtu.be/LrEvoKI07Ww?t=436
 	public static final int WIDTH = 1024, HEIGHT = 768;
-	private final Color backgroundColor = new Color(9, 9, 42);
+	private final Color BACKGROUND_COLOR = new Color(9, 9, 42);
 
 	private KeyInput keyboard;
 	private Ship ship; // Player
 	private Camera camera;
 	private HUD hud;
+	private Random r;
 
 	private Thread thread;
 
@@ -25,15 +26,27 @@ public class Game extends Canvas implements Runnable
 		this.setFocusable(true);
 		this.requestFocus();
 
-		ship = new Ship(WIDTH / 2, HEIGHT / 5, 50, 46);
+		r = new Random();
+		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
+		int spawnY = r.nextInt(HEIGHT) - 3 * HEIGHT / 2;
+		ship = new Ship(spawnX, spawnY, 50, 46);
 		camera = new Camera(ship, WIDTH, HEIGHT);
 		hud = new HUD(ship);
 
-		keyboard = new KeyInput(ship);
+
+		keyboard = new KeyInput(ship, this);
 		this.addKeyListener(keyboard);
 
 		thread = new Thread(this);
 		thread.start();
+	}
+
+	public void restart()
+	{
+		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
+		int spawnY = r.nextInt(HEIGHT) - 3 * HEIGHT / 2;
+		ship.reset(spawnX, spawnY);
+		Environment.createTerrainAndStars();
 	}
 
 	private void tick()
@@ -55,7 +68,7 @@ public class Game extends Canvas implements Runnable
 
 		Graphics2D g2d = (Graphics2D) g;
 
-		g.setColor(backgroundColor);
+		g.setColor(BACKGROUND_COLOR);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 
 		g2d.translate(-camera.getX(), -camera.getY());
