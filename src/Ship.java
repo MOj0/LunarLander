@@ -8,16 +8,20 @@ public class Ship
 {
 	// Make private eventually?
 	public double x, y, width, height;
-	public double velX, velY, velocity, speed, angle;
+	public double velX, velY, velocity, speed, angle, deviation;
+	public int terrainDelta;
 	public BufferedImage shipImage;
 	private double[] shipHitboxX, shipHitboxY;
 	private int nPoints;
-	private boolean accelerting;
+	private boolean accelerating, reversing;
 	private int steer; // -1 - left, 0 - forward, 1 - right
 	private final Color color = Color.white;
+	private final int[] terrain = Environment.getTerrain();
 
 	// DEBUG
 	private int[] collisionPoint;
+	private Color collisionColor;
+	private int[][] terrainSlopePoints;
 
 	public Ship(int x, int y, int width, int height)
 	{
@@ -25,17 +29,19 @@ public class Ship
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		velX = velY = angle = 0;
+		velX = velY = angle = deviation = terrainDelta = 0;
 		shipHitboxX = shipHitboxY = new double[nPoints];
 		speed = 0.15;
 		nPoints = 3;
-		accelerting = false;
+		accelerating = reversing = false;
 		steer = 0;
 
 		shipImage = readImage("res/shipImage.png");
 
 		// DEBUG
 		collisionPoint = new int[2];
+		collisionColor = Color.red;
+		terrainSlopePoints = new int[2][2];
 
 		updateShape();
 	}
@@ -63,7 +69,12 @@ public class Ship
 
 	public void setAcceleration(boolean accelerating)
 	{
-		this.accelerting = accelerating;
+		this.accelerating = accelerating;
+	}
+
+	public void setReverse(boolean reversing)
+	{
+		this.reversing = reversing;
 	}
 
 	public void setSteer(int steer)
@@ -119,7 +130,6 @@ public class Ship
 
 	private boolean checkCollision()
 	{
-		int[] terrain = Environment.getTerrain();
 		double hitboxArea = areaOfTriangle(shipHitboxX, shipHitboxY);
 		double minShipX = x - width / 5;
 		double maxShipX = x + 6 * width / 5;
@@ -131,18 +141,18 @@ public class Ship
 		double p1y = shipHitboxY[1];
 		double p2y = shipHitboxY[2];
 
-		for(int terrainX = 0; terrainX < terrain.length; terrainX++)
+		for(int terrainXIndex = 0; terrainXIndex < terrain.length; terrainXIndex++)
 		{
-			if(terrainX < minShipX || terrainX > maxShipX) // Cannot collide with ship - optimization
+			if(terrainXIndex < minShipX || terrainXIndex > maxShipX) // Cannot collide with ship - optimization
 			{
 				continue;
 			}
 
-			double terrainY = terrain[terrainX];
-			if(isColliding(hitboxArea, terrainX, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
+			double terrainY = terrain[terrainXIndex];
+			if(isColliding(hitboxArea, terrainXIndex, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
 			{
 				// DEBUG
-				collisionPoint[0] = terrainX;
+				collisionPoint[0] = terrainXIndex;
 				collisionPoint[1] = (int) terrainY;
 				return true;
 			}
@@ -150,24 +160,63 @@ public class Ship
 		return false;
 	}
 
+
+	private boolean checkPointsOnLine(double deviation, double x1, double y1, double x2, double y2, double x3,
+									  double y3)
+	{
+		double slope1 = (y2 - y1) / (x2 - x1);
+		double slope2 = (y3 - y1) / (x3 - x1);
+		return Math.abs(slope1 - slope2) < deviation;
+	}
+
+	private boolean checkSlopes(double deviation, double x1, double y1, double x2, double y2, double x3, double y3,
+								double x4, double y4)
+	{
+		// (x1, y1), (x2, y2) - Ship (bottom line)
+		// (x3, y3), (x4, y4) - Terrain
+		double slopeShip = (y2 - y1) / (x2 - x1);
+		double slopeTerrain = (y4 - y3) / (x4 - x3);
+		return Math.abs(slopeShip - slopeTerrain) < deviation;
+	}
+
 	public void tick()
 	{
 		if(checkCollision())
 		{
-			//TODO: Check if landed successfully or crashed
+			double x1 = shipHitboxX[1];
+			double y1 = shipHitboxY[1];
+			double x2 = shipHitboxX[2];
+			double y2 = shipHitboxY[2];
+			int x3 = collisionPoint[0] - terrainDelta;
+			double y3 = terrain[x3];
+			int x4 = collisionPoint[0] + terrainDelta;
+			double y4 = terrain[x4];
+			terrainSlopePoints[0][0] = x3;
+			terrainSlopePoints[0][1] = (int) y3;
+			terrainSlopePoints[1][0] = x4;
+			terrainSlopePoints[1][1] = (int) y4;
+			collisionColor = checkSlopes(deviation, x1, y1, x2, y2, x3, y3, x4, y4) ? Color.green : Color.red;
 		}
 
 		angle += Math.PI * steer / 180;
+		terrainDelta = (int) Math.min(20, (1 - Math.abs(Math.cos(angle))) * 300) + 6;
 
-		if(accelerting)
+		if(accelerating)
 		{
 			velX += Math.sin(angle) / 5; // Hardcoded value yikes
 			velY -= Math.cos(angle) * speed;
+		}
+		else if(reversing)
+		{
+			velX -= Math.sin(angle) / 25; // Hardcoded value yikes
+			velY += Math.cos(angle) * speed / 2;
 		}
 
 		velX += Math.abs(velX) > Environment.drag ? velX > 0 ? -Environment.drag : Environment.drag : 0;
 		velY += velY < Environment.maxGravityForce ? Environment.gravity : 0;
 		velocity = Math.sqrt(velX * velX + velY * velY);
+//		deviation = Math.max(0.05, 0.3 - velocity);
+		deviation = velocity > 1 ? 0 : Math.max(0.05, 0.25 - Math.abs(angle));
 
 		x += velX;
 		y += velY;
@@ -186,7 +235,12 @@ public class Ship
 		g2d.drawImage(shipImage, -cx, -cy, null); // draw image in top left point of the ship
 
 		// DEBUG
-		g.setColor(Color.red);
+//		g.setColor(Color.red);
+//		g.drawPolygon(convertDoubleToIntArray(shipHitboxX), convertDoubleToIntArray(shipHitboxY), 3);
+		g.setColor(collisionColor);
 		g.fillOval(collisionPoint[0] - 5, collisionPoint[1] - 5, 10, 10);
+		g.drawLine(terrainSlopePoints[0][0], terrainSlopePoints[0][1], terrainSlopePoints[1][0],
+				terrainSlopePoints[1][1]);
+		g.drawLine((int) shipHitboxX[1], (int) shipHitboxY[1], (int) shipHitboxX[2], (int) shipHitboxY[2]);
 	}
 }

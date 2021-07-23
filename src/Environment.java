@@ -30,7 +30,7 @@ public class Environment
 	public static void createTerrainAndStars()
 	{
 		offset = r.nextInt(10000);
-		int scale = r.nextInt(25) + 375;
+		int scale = r.nextInt(25) + 325;
 
 		for(int i = 0; i < terrain.length; i++)
 		{

@@ -25,6 +25,10 @@ public class KeyInput extends KeyAdapter
 		{
 			ship.setAcceleration(true);
 		}
+		else if(keyCode == 83) // S
+		{
+			ship.setReverse(true);
+		}
 		else if(keyCode == 65 || keyCode == 68) // A, D
 		{
 			boolean pressedA = keyCode == 65;
@@ -49,6 +53,10 @@ public class KeyInput extends KeyAdapter
 		if(keyCode == 87) // W
 		{
 			ship.setAcceleration(false);
+		}
+		else if(keyCode == 83) // S
+		{
+			ship.setReverse(false);
 		}
 		else if(keyCode == 65 || keyCode == 68) // A, D
 		{
