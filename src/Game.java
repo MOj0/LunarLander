@@ -5,7 +5,7 @@ import java.util.Random;
 public class Game extends Canvas implements Runnable
 {
 	public static final int WIDTH = 1024, HEIGHT = 768;
-	private final Color BACKGROUND_COLOR = new Color(9, 9, 42);
+	private final Color BACKGROUND_COLOR = Color.black;
 
 	public static State gameState = State.Game;
 	private Random r;
