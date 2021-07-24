@@ -4,11 +4,13 @@ import java.io.IOException;
 
 public class SoundClip
 {
+	// TODO: Fix clicking sound
 	private Clip clip = null;
 	private FloatControl gainControl; // Operates in decibels (not floats)!
 	private long endMicroseconds;
+	private boolean enabled;
 
-	public SoundClip(String path, boolean isEnd)
+	public SoundClip(String path, boolean isEnd, float defaultVolume)
 	{
 		try
 		{
@@ -29,6 +31,8 @@ public class SoundClip
 			clip.open(dAis);
 
 			gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			changeVolume(defaultVolume);
+			enabled = true;
 
 			if(isEnd) // Add LineListener to stop automatically
 			{
@@ -50,18 +54,29 @@ public class SoundClip
 		}
 	}
 
+	public void setEnabled(boolean enabled)
+	{
+		this.enabled = enabled;
+	}
+
 	public void loop()
 	{
-		// KeyInput stops the loop
-		clip.setLoopPoints(0, 90000); // 114727 - max
-		clip.loop(Clip.LOOP_CONTINUOUSLY);
+		if(enabled)
+		{
+			// KeyInput stops the loop
+			clip.setLoopPoints(0, 90000); // 114727 - max
+			clip.loop(Clip.LOOP_CONTINUOUSLY);
+		}
 	}
 
 	public void playAndStop()
 	{
-		// Stops automatically because of LineListener
-		clip.setMicrosecondPosition(endMicroseconds);
-		clip.start();
+		if(enabled)
+		{
+			// Stops automatically because of LineListener
+			clip.setMicrosecondPosition(endMicroseconds);
+			clip.start();
+		}
 	}
 
 	public void stop()

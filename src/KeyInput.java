@@ -1,12 +1,13 @@
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 
 public class KeyInput extends KeyAdapter
 {
 	private Ship ship;
 	private Game game;
 	private SoundClip soundClipBoost, soundClipEnd;
-	private final boolean[] pressedLeftRight;
+	private final boolean[] pressedDirectional;
 
 	public KeyInput(Ship ship, Game game, SoundClip soundClip, SoundClip soundClipEnd)
 	{
@@ -14,7 +15,7 @@ public class KeyInput extends KeyAdapter
 		this.game = game;
 		this.soundClipBoost = soundClip;
 		this.soundClipEnd = soundClipEnd;
-		pressedLeftRight = new boolean[2]; // A, D
+		pressedDirectional = new boolean[2]; // A, D
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class KeyInput extends KeyAdapter
 		{
 			boolean pressedA = keyCode == 65;
 			ship.setSteer(pressedA ? -1 : 1);
-			pressedLeftRight[pressedA ? 0 : 1] = true;
+			pressedDirectional[pressedA ? 0 : 1] = true;
 		}
 		else if(keyCode == 82) // R
 		{
@@ -69,11 +70,11 @@ public class KeyInput extends KeyAdapter
 		}
 		else if(keyCode == 65 || keyCode == 68) // A, D
 		{
-			pressedLeftRight[keyCode == 65 ? 0 : 1] = false;
+			pressedDirectional[keyCode == 65 ? 0 : 1] = false;
 		}
 
-		// Reset steer only if no directional button is pressed -> less clunky movement
-		if(!pressedLeftRight[0] && !pressedLeftRight[1])
+		// Reset steer only if no directional button is pressed
+		if(!pressedDirectional[0] && !pressedDirectional[1])
 		{
 			ship.setSteer(0);
 		}

@@ -7,6 +7,7 @@ public class Game extends Canvas implements Runnable
 	public static final int WIDTH = 1024, HEIGHT = 768;
 	private final Color BACKGROUND_COLOR = new Color(9, 9, 42);
 
+	public static State gameState = State.Game;
 	private Random r;
 	private KeyInput keyboard;
 	private Ship ship; // Player
@@ -29,13 +30,12 @@ public class Game extends Canvas implements Runnable
 
 		r = new Random();
 		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
-		int spawnY = r.nextInt(HEIGHT) - 3 * HEIGHT / 2;
+		int spawnY = r.nextInt(2 * HEIGHT / 3) - HEIGHT / 3;
 		ship = new Ship(spawnX, spawnY, 50, 46);
 		camera = new Camera(ship, WIDTH, HEIGHT);
 		hud = new HUD(ship);
-		soundClipBoost = new SoundClip("res/boostSound2.wav", false);
-		soundClipEnd = new SoundClip("res/boostSound2.wav", true);
-		//TODO: Change volume
+		soundClipBoost = new SoundClip("res/boostSound2.wav", false, -20);
+		soundClipEnd = new SoundClip("res/boostSound2.wav", true, -20);
 
 		keyboard = new KeyInput(ship, this, soundClipBoost, soundClipEnd);
 		this.addKeyListener(keyboard);
@@ -47,15 +47,27 @@ public class Game extends Canvas implements Runnable
 	public void restart()
 	{
 		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
-		int spawnY = r.nextInt(HEIGHT) - 3 * HEIGHT / 2;
+		int spawnY = r.nextInt(2 * HEIGHT / 3) - HEIGHT / 3;
 		ship.reset(spawnX, spawnY);
 		Environment.createTerrainAndStars();
+		soundClipBoost.setEnabled(true);
+		soundClipEnd.setEnabled(true);
+		hud.resetTimer();
+		gameState = State.Game;
 	}
 
 	private void tick()
 	{
-		camera.tick();
-		ship.tick();
+		if(gameState == State.Game)
+		{
+			camera.tick();
+			ship.tick();
+		}
+		else
+		{
+			soundClipBoost.setEnabled(false);
+			soundClipEnd.setEnabled(false);
+		}
 	}
 
 	private void render()
