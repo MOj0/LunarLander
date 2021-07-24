@@ -6,6 +6,9 @@ import java.util.Arrays;
 
 public class Ship
 {
+	private final Color COLOR = Color.white;
+	private final int[] TERRAIN = Environment.getTerrain();
+
 	// Make private eventually?
 	public double x, y, width, height;
 	public double velX, velY, velocity, speed, angle, deviation; // deviation - max rounding error when checking slopes
@@ -15,8 +18,8 @@ public class Ship
 	private int nPoints;
 	private boolean accelerating, reversing;
 	private int steer; // -1 - left, 0 - forward, 1 - right
-	private final Color COLOR = Color.white;
-	private final int[] TERRAIN = Environment.getTerrain();
+	private double[][] boostShape;
+	private double boostShapeHeight, boostShapeHeightVariying, boostShapeHeightCounter;
 
 	// DEBUG
 	private int[] collisionPoint;
@@ -34,6 +37,9 @@ public class Ship
 		speed = 0.05;
 		nPoints = 3;
 		accelerating = reversing = false;
+		boostShape = new double[nPoints][2];
+		boostShapeHeight = 3 * this.height / 4;
+		boostShapeHeightVariying = boostShapeHeightCounter = 0;
 
 		shipImage = readImage("res/shipImage.png");
 
@@ -90,20 +96,38 @@ public class Ship
 		return new double[]{centerX + px * cosx - py * sinx, centerY + px * sinx + py * cosx};
 	}
 
+	private double lerp(double a, double b, double t)
+	{
+		return a + (b - a) * t;
+	}
+
 	private void updateShape()
 	{
 		// Updating ship hitbox every tick
 		shipHitboxX = new double[]{x + width / 2, x, x + width};
 		shipHitboxY = new double[]{y, y + height, y + height};
 
-		// Rotating hitbox around the center
+		// Update boost shape variables
+		boostShapeHeight = accelerating ? 3 * height / 4 : lerp(boostShapeHeight, 0, 0.33);
+		boostShapeHeightVariying = 1.5 * Math.sin(boostShapeHeightCounter++);
+
+		// Update boost shape
+		boostShape[0] = new double[]{x + 16, x + width - 16, x + width / 2};
+		boostShape[1] = new double[]{y + height - 3, y + height - 3,
+				y + height + boostShapeHeight + boostShapeHeightVariying};
+
+		// Rotate hitbox and boost shape (triangle) around the center of the ship
 		double centerX = x + width / 2;
 		double centerY = y + height / 2;
 		for(int i = 0; i < nPoints; i++)
 		{
-			double[] rotatedPointXY = rotatePoint(shipHitboxX[i], shipHitboxY[i], centerX, centerY);
-			shipHitboxX[i] = rotatedPointXY[0];
-			shipHitboxY[i] = rotatedPointXY[1];
+			double[] rotatedPointShip = rotatePoint(shipHitboxX[i], shipHitboxY[i], centerX, centerY);
+			shipHitboxX[i] = rotatedPointShip[0];
+			shipHitboxY[i] = rotatedPointShip[1];
+
+			double[] rotatedPointBoost = rotatePoint(boostShape[0][i], boostShape[1][i], centerX, centerY);
+			boostShape[0][i] = rotatedPointBoost[0];
+			boostShape[1][i] = rotatedPointBoost[1];
 		}
 	}
 
@@ -118,8 +142,8 @@ public class Ship
 		return 0.5 * (-yPoints[1] * xPoints[2] + yPoints[0] * (-xPoints[1] + xPoints[2]) + xPoints[0] * (yPoints[1] - yPoints[2]) + xPoints[1] * yPoints[2]);
 	}
 
-	private boolean isInsideTriangle(double area, double px, double py, double p0x, double p1x, double p2x, double p0y,
-									 double p1y, double p2y)
+	private boolean isPointInsideTriangle(double area, double px, double py, double p0x, double p1x, double p2x,
+										  double p0y, double p1y, double p2y)
 	{
 		double s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * px + (p0x - p2x) * py);
 		double t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * px + (p1x - p0x) * py);
@@ -148,7 +172,7 @@ public class Ship
 			}
 
 			double terrainY = TERRAIN[terrainXIndex];
-			if(isInsideTriangle(hitboxArea, terrainXIndex, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
+			if(isPointInsideTriangle(hitboxArea, terrainXIndex, terrainY, p0x, p1x, p2x, p0y, p1y, p2y))
 			{
 				// DEBUG
 				collisionPoint[0] = terrainXIndex;
@@ -232,6 +256,9 @@ public class Ship
 		g2d.translate(x + cx, y + cy); // Ship's center is in top left (of the screen)
 		g2d.rotate(angle);
 		g2d.drawImage(shipImage, -cx, -cy, null); // draw image in top left point of the ship
+		if(boostShapeHeight > 0.2)
+			g.drawPolygon(convertDoubleToIntArray(boostShape[0]), convertDoubleToIntArray(boostShape[1]), 3);
+
 
 		// DEBUG
 //		g.setColor(Color.red);
@@ -240,6 +267,5 @@ public class Ship
 		g.fillOval(collisionPoint[0] - 5, collisionPoint[1] - 5, 10, 10);
 		g.drawLine(terrainSlopePoints[0][0], terrainSlopePoints[0][1], terrainSlopePoints[1][0],
 				terrainSlopePoints[1][1]);
-		g.drawLine((int) shipHitboxX[1], (int) shipHitboxY[1], (int) shipHitboxX[2], (int) shipHitboxY[2]);
 	}
 }

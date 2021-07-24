@@ -1,0 +1,86 @@
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
+
+public class SoundClip
+{
+	private Clip clip = null;
+	private FloatControl gainControl; // Operates in decibels (not floats)!
+	private long endMicroseconds;
+
+	public SoundClip(String path, boolean isEnd)
+	{
+		try
+		{
+			AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
+			AudioFormat baseFormat = ais.getFormat();
+
+			AudioFormat decodeFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+					baseFormat.getSampleRate(),
+					16,
+					baseFormat.getChannels(),
+					baseFormat.getChannels() * 2,
+					baseFormat.getSampleRate(),
+					false);
+
+			AudioInputStream dAis = AudioSystem.getAudioInputStream(decodeFormat, ais);
+
+			clip = AudioSystem.getClip();
+			clip.open(dAis);
+
+			gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+
+			if(isEnd) // Add LineListener to stop automatically
+			{
+				endMicroseconds = 8 * clip.getMicrosecondLength() / 10;
+
+				LineListener listener = event ->
+				{
+					if(event.getType() == LineEvent.Type.STOP)
+					{
+						clip.stop();
+					}
+				};
+				clip.addLineListener(listener);
+			}
+		}
+		catch(UnsupportedAudioFileException | IOException | LineUnavailableException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void loop()
+	{
+		// KeyInput stops the loop
+		clip.setLoopPoints(0, 90000); // 114727 - max
+		clip.loop(Clip.LOOP_CONTINUOUSLY);
+	}
+
+	public void playAndStop()
+	{
+		// Stops automatically because of LineListener
+		clip.setMicrosecondPosition(endMicroseconds);
+		clip.start();
+	}
+
+	public void stop()
+	{
+		if(clip.isRunning())
+		{
+			clip.stop();
+		}
+	}
+
+	public void close()
+	{
+		stop();
+		clip.drain();
+		clip.close();
+	}
+
+	public void changeVolume(float decibels)
+	{
+		gainControl.setValue(decibels);
+	}
+}

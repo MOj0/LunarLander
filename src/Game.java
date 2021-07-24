@@ -7,11 +7,12 @@ public class Game extends Canvas implements Runnable
 	public static final int WIDTH = 1024, HEIGHT = 768;
 	private final Color BACKGROUND_COLOR = new Color(9, 9, 42);
 
+	private Random r;
 	private KeyInput keyboard;
 	private Ship ship; // Player
 	private Camera camera;
 	private HUD hud;
-	private Random r;
+	private SoundClip soundClipBoost, soundClipEnd;
 
 	private Thread thread;
 
@@ -32,9 +33,11 @@ public class Game extends Canvas implements Runnable
 		ship = new Ship(spawnX, spawnY, 50, 46);
 		camera = new Camera(ship, WIDTH, HEIGHT);
 		hud = new HUD(ship);
+		soundClipBoost = new SoundClip("res/boostSound2.wav", false);
+		soundClipEnd = new SoundClip("res/boostSound2.wav", true);
+		//TODO: Change volume
 
-
-		keyboard = new KeyInput(ship, this);
+		keyboard = new KeyInput(ship, this, soundClipBoost, soundClipEnd);
 		this.addKeyListener(keyboard);
 
 		thread = new Thread(this);

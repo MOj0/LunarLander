@@ -3,14 +3,17 @@ import java.awt.event.KeyEvent;
 
 public class KeyInput extends KeyAdapter
 {
-	private final Ship ship;
-	private final Game game;
+	private Ship ship;
+	private Game game;
+	private SoundClip soundClipBoost, soundClipEnd;
 	private final boolean[] pressedLeftRight;
 
-	public KeyInput(Ship ship, Game game)
+	public KeyInput(Ship ship, Game game, SoundClip soundClip, SoundClip soundClipEnd)
 	{
 		this.ship = ship;
 		this.game = game;
+		this.soundClipBoost = soundClip;
+		this.soundClipEnd = soundClipEnd;
 		pressedLeftRight = new boolean[2]; // A, D
 	}
 
@@ -22,10 +25,13 @@ public class KeyInput extends KeyAdapter
 		if(keyCode == 27) // Esc
 		{
 			System.exit(0);
+			soundClipBoost.close();
+			soundClipEnd.close();
 		}
 		else if(keyCode == 87) // W
 		{
 			ship.setAcceleration(true);
+			soundClipBoost.loop();
 		}
 		else if(keyCode == 83) // S
 		{
@@ -54,6 +60,8 @@ public class KeyInput extends KeyAdapter
 		if(keyCode == 87) // W
 		{
 			ship.setAcceleration(false);
+			soundClipBoost.stop();
+			soundClipEnd.playAndStop();
 		}
 		else if(keyCode == 83) // S
 		{
