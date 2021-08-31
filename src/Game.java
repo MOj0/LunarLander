@@ -29,7 +29,7 @@ public class Game extends Canvas implements Runnable
 		this.requestFocus();
 
 		r = new Random();
-		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
+		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH - 50);
 		int spawnY = r.nextInt(2 * HEIGHT / 3) - HEIGHT / 3;
 		ship = new Ship(spawnX, spawnY, 50, 46);
 		camera = new Camera(ship, WIDTH, HEIGHT);
@@ -46,7 +46,7 @@ public class Game extends Canvas implements Runnable
 
 	public void restart()
 	{
-		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH);
+		int spawnX = r.nextInt(Environment.WIDTH_MULTIPLIER * Game.WIDTH - 50);
 		int spawnY = r.nextInt(2 * HEIGHT / 3) - HEIGHT / 3;
 		ship.reset(spawnX, spawnY);
 		Environment.createTerrainAndStars();

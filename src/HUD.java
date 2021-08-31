@@ -50,7 +50,7 @@ public class HUD
 		}
 		else
 		{
-			String gameOverText = Game.gameState == State.Won ? "You won!" : "You lost!";
+			String gameOverText = Game.gameState == State.Won ? "You landed!" : "You crashed!";
 			String restartText = "Press R to restart.";
 			String timerText = Game.gameState == State.Won ? String.format("Time: %.2f", timer) : "";
 
@@ -61,14 +61,14 @@ public class HUD
 
 			g.setColor(Game.gameState == State.Won ? Color.green : Color.red);
 			g.drawString(gameOverText, Game.WIDTH / 2 - gameOverTextBounds.width / 2,
-					Game.HEIGHT / 2 - gameOverTextBounds.height / 2);
+					Game.HEIGHT / 3 - gameOverTextBounds.height / 2);
 
 			g.setColor(Color.white);
 			g.drawString(restartText, Game.WIDTH / 2 - restartTextBounds.width / 2,
-					Game.HEIGHT / 2 - restartTextBounds.height / 2 + 30);
+					Game.HEIGHT / 3 - restartTextBounds.height / 2 + 30);
 
 			g.drawString(timerText, Game.WIDTH / 2 - timerTextBounds.width / 2,
-					Game.HEIGHT / 2 - timerTextBounds.height / 2 + 60);
+					Game.HEIGHT / 3 - timerTextBounds.height / 2 + 60);
 		}
 	}
 }
